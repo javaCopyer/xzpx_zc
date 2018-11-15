@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en" class="no-js">
+
+    <head>
+
+        <meta charset="utf-8">
+        <title>登陆</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="description" content="">
+        <meta name="author" content="">
+
+        <!-- CSS -->
+        <link rel='stylesheet' href='http://fonts.googleapis.com/css?family=PT+Sans:400,700'>
+        <link rel="stylesheet" href="assets/css/reset.css">
+        <link rel="stylesheet" href="assets/css/supersized.css">
+        <link rel="stylesheet" href="assets/css/style.css">
+		<!-- alert 插件 -->
+		<link rel="stylesheet" href="../plugins/alert-master/js/SyntaxHighlighter/shCoreDefault.css">
+		<link rel="stylesheet" href="../plugins/alert-master/css/alert.css">
+	
+        <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+        <!--[if lt IE 9]>
+            <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+        <![endif]-->
+
+    </head>
+
+    <body>
+
+        <div class="page-container">
+            <h1>登陆</h1>
+            <form action="" method="post" id="loginForm">
+                <input type="text" name="userName" class="username" placeholder="用户名">
+                <input type="password" name="password" class="password" placeholder="密码">
+                <button type="submit">确认登陆</button>
+                <div class="error"><span>+</span></div>
+            </form>
+            <div class="connect">
+                <p>其他方式登陆:</p>
+                <p>
+                    <a class="facebook" href=""></a>
+                    <a class="twitter" href=""></a>
+                </p>
+            </div>
+        </div>
+
+        <!-- Javascript -->
+		<!-- alert 插件 -->
+        <script src='../plugins/alert-master/js/jquery-1.9.0.min.js'></script>
+		<script src='../plugins/alert-master/js/SyntaxHighlighter/shCore.js'></script>
+		<script src='../plugins/alert-master/js/SyntaxHighlighter/makeSy.js'></script>
+		<script src='../plugins/alert-master/js/alert.min.js'></script>
+		<script src='../plugins/alert-master/js/alert-api.js'></script>
+	
+        <script src="assets/js/jquery-1.8.2.min.js"></script>
+        <script src="assets/js/supersized.3.2.7.min.js"></script>
+        <script src="assets/js/supersized-init.js"></script>
+        <script src="assets/js/scripts.js"></script>
+    </body>
+	<script type="text/javascript">
+		$(function() {
+			$("#loginForm").submit(function() {
+				var url = "/xzpx_zc/userLogin.json";
+				var userName = $("input[name=userName").val();
+				var userPassword = $("input[name=password]").val();
+				var data = {
+					userName : userName,
+					userPassword : userPassword
+				}
+				$.post(url, data, function(res) {
+					var result = res.result;
+					if(result.code  == 1) {
+						jqueryAlert({
+							'content' : '登陸成功',
+							'closeTime' : 2000,
+						})
+					}
+						
+					if(result.code  == 0)  {
+						jqueryAlert({
+						    'icon'    : '../plugins/alert-master/img/error.png',
+						    'content' : '賬號或者密碼錯誤，請您重新登陸！',
+						    'closeTime' : 2000,
+						})
+					}
+						
+				});
+				return false;
+			});
+			
+		});
+	</script>
+</html>
+

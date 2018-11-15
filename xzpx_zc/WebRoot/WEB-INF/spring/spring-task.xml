@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:mvc="http://www.springframework.org/schema/mvc"
+   	xmlns:task="http://www.springframework.org/schema/task" 
+	xmlns:context="http://www.springframework.org/schema/context"
+    xsi:schemaLocation="http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc.xsd
+        http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+	    http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+	    http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task.xsd">
+	
+	
+	<!-- quartz的集成   （作业类继承特定的基类）
+		2-定义触发器
+	org.springframework.scheduling.quartz.SimpleTriggerBean
+	org.springframework.scheduling.quartz.CronTriggerBean
+	第一种SimpleTriggerBean，只支持按照一定频度调用任务，如每隔30分钟运行一次。
+	第二种CronTriggerBean 支持指定时间调用任务
+		3-配置调度工厂
+	 -->
+	 
+	 <!-- 第一种配置方式 JobDetailFactoryBean的配置方式，需要作业类继承基本的作业类  这种方式可以给作业类传递数据的 -->
+	 	<!-- 刷新spring缓存的job -->
+	 	<bean id="cacheJob" class="org.springframework.scheduling.quartz.JobDetailFactoryBean">
+		<property name="jobClass" value="com.xzpx_zc.spring.quartz.CacheJob" /> 
+		<property name="jobDataAsMap">
+			<map>
+				<entry key="cacheManager" value-ref="cacheManager" />
+			</map>
+		</property>
+		<property name="durability" value="true" />  
+	</bean>	
+	<!-- 第一种配置结束 -->
+	
+	<!-- 第二种配置是使用简单的pojo作业类，这种方式比较方便  使用的类是MethodInvokingJobDetailFactoryBean -->
+	<!-- 第二种配置方式结束 -->
+	
+	<!-- 配置触发器  触发器的配置也是有两种 -->
+	<!-- 简单类型的触发器，只能是按照一定的平率进行触发 -->
+	<!-- 计划触发器，可以针对特定的计划方案进行触发 -->
+	<bean id="cronTrigger"  class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">  
+    <property name="jobDetail" ref="cacheJob" />  
+    <property name="cronExpression" value="0/1 * * ? * *" />  <!-- 每1秒触发   0/5==*/5 -->
+	</bean>
+	<bean  class="org.springframework.scheduling.quartz.SchedulerFactoryBean">  
+		<property name="triggers">
+			<list>
+				<ref bean="cronTrigger"/>
+			</list>
+		</property>
+	</bean>
+	
+	<!-- quartz的任务调度存储方式分为两种
+		一种是上述基于内存的存储方式，
+		一种是基于数据库的持久化的存储方式
+	 -->
+	<!-- quartz 持久化的配置 -->
+	
+	
+</beans>

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xzpx_zc.mapper.ZcUserMapperSelf">
+  <resultMap id="userMap" type="com.xzpx_zc.pojo.ZcUser">
+    <id column="user_id" jdbcType="INTEGER" property="userId" />
+    <result column="user_name" jdbcType="VARCHAR" property="userName" />
+    <result column="user_password" jdbcType="VARCHAR" property="userPassword" />
+    <result column="user_mail" jdbcType="VARCHAR" property="userMail" />
+    <result column="user_status" jdbcType="INTEGER" property="userStatus" />
+  </resultMap>
+  <select id="selectUser" parameterType="com.xzpx_zc.pojo.ZcUser" resultMap="userMap">
+   		SELECT * FROM zc_user WHERE user_status != 0
+   		<if test="userName != null and userName != ''">
+			AND user_name = #{userName}   			
+   		</if>
+   		<if test="userPassword != null and userPassword != ''">
+   			AND user_password = #{userPassword}
+   		</if>
+  </select>
+</mapper>

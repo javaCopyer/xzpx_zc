@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+    xmlns:context="http://www.springframework.org/schema/context"
+    xmlns:tx="http://www.springframework.org/schema/tx" 
+    xmlns:mvc="http://www.springframework.org/schema/mvc"
+    xmlns:aop="http://www.springframework.org/schema/aop"  
+    xsi:schemaLocation="http://www.springframework.org/schema/beans 
+       http://www.springframework.org/schema/beans/spring-beans.xsd 
+       http://www.springframework.org/schema/context 
+       http://www.springframework.org/schema/context/spring-context.xsd 
+       http://www.springframework.org/schema/tx 
+       http://www.springframework.org/schema/tx/spring-tx.xsd
+       http://www.springframework.org/schema/mvc
+       http://www.springframework.org/schema/mvc/spring-mvc.xsd
+       http://www.springframework.org/schema/aop 
+       http://www.springframework.org/schema/aop/spring-aop-2.0.xsd">
+		 
+	<!-- 
+		springmvc的执行流程（配置流程）
+		1.首先应该在web.xml中配置前端控制器拦截请求，在springmvc中前端控制器为org.springframework.web.servlet.DispatcherServlet 
+		2.配置处理器映射器
+		3.配置处理器适配器
+		4.视图解析器
+	 -->
+	 <!-- 注解映射器 
+	 <bean class="org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping.class"/>
+	 -->
+	 <!-- 注解适配器 
+	 <bean class="org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter"/>
+   	 -->
+   	
+    <!-- 注册HandlerMapper、HandlerAdapter两个映射类 ，有了下面的这个注解就不用在配置上面的映射器和适配器了-->
+	<mvc:annotation-driven  content-negotiation-manager="contentNegotiationManager"/>
+   
+	 <context:component-scan base-package="com.xzpx_zc.controller"/>
+    	
+ 	<!-- 	 访问静态资源  -->
+    <!-- 在springmvc中使用REST风格的架构的时候，url不希望带类似.do, .action的后缀， 所以往往将DispatcherServlet的url-pattern的拦截路径设置为“/”
+    	这将导致，所有的请求将被DispatcherServlet所拦截(包括静态资源)，所有需要此配置访问系统内的静态资源。
+    	此配置会注册一个
+    	org.springframework.web.servlet.resource.DefaultServletHttpRequestHandler，它会像一个检查员，对进入DispatcherServlet的URL进行筛查，如果发现是静态资源的请求，就将该请求转由Web应用服务器默认的Servlet处理，如果不是静态资源的请求，才由DispatcherServlet继续处理。
+		一般Web应用服务器默认的Servlet名称是"default"，因此DefaultServletHttpRequestHandler可以找到它。如果你所有的Web应用服务器的默认Servlet名称不是"default"，则需要通过default-servlet-name属性显示指定：
+	 
+    -->
+     <!-- <mvc:default-servlet-handler/> -->
+	<!-- 全局拦截器的配置 -->
+	<mvc:interceptors>
+		<mvc:interceptor>
+			<mvc:mapping path="/**"/>
+			<bean class="com.xzpx_zc.spring.interceptor.handlerLogInterceptor"/>
+		</mvc:interceptor>
+			<mvc:interceptor>
+			<mvc:mapping path="/**"/>
+			<mvc:exclude-mapping path="/**/userLogin.json"/>
+			<mvc:exclude-mapping path="/**/userLogin.action"/>
+			<mvc:exclude-mapping path="/**/userLogin.xml"/>
+			<bean class="com.xzpx_zc.spring.interceptor.RequestInterceptor"/>
+		</mvc:interceptor>
+	</mvc:interceptors>
+    <!-- 视图解析器 -->
+    <bean id="viewResolvers"
+        class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+        <property name="prefix" value=""></property>
+        <property name="suffix" value=".jsp"></property>
+        <property name="order" value="1"></property>
+    </bean>
+    
+    
+    
+    
+   <!--  
+   	BeanNameViewResolver
+   	根据在xml配置view的name寻找view解析视图
+   	例如在controller中返回值为 new ModelAndView("xStreamMarshallingView", map);
+    <bean class="org.springframework.web.servlet.view.BeanNameViewResolver">
+        <property name="order" value="1"/>
+    </bean>
+   <bean name="xStreamMarshallingView" class="org.springframework.web.servlet.view.xml.MarshallingView">
+    	<property name="marshaller">
+				<bean class="org.springframework.oxm.xstream.XStreamMarshaller"/>  
+	    </property>
+	</bean>
+	 -->
+	 
+	 <!-- 配置内容协商视图解析器 -->
+	 <bean class="org.springframework.web.servlet.view.ContentNegotiatingViewResolver">
+		<!-- 设置内容协商管理器   -->
+        <property name="contentNegotiationManager" ref="contentNegotiationManager"></property>  
+		<property name="viewResolvers" ref="viewResolvers" />
+		<property name="defaultViews">
+			<list>
+				<!-- 处理接送的view -->
+				<bean class="com.xzpx_zc.spring.view.MappingJackson2JsonViewEx" />
+				<!-- 处理xml的view（xtream） -->
+				<bean class="org.springframework.web.servlet.view.xml.MarshallingView">
+					<property name="marshaller">
+						<bean class="org.springframework.oxm.xstream.XStreamMarshaller"/>
+					</property>
+				</bean>
+			</list>
+		</property>
+	</bean>
+	
+	<!-- 配置内容协商管理器
+		执行的顺寻为url后缀-参数-请求accept头信息-defaultContentType
+	 -->
+	 <bean id="contentNegotiationManager"  
+        class="org.springframework.web.accept.ContentNegotiationManagerFactoryBean">  
+        <!-- ignoreAcceptHeader表示是否关闭accept头识别，默认false,即默认开启 -->
+         <property name="ignoreAcceptHeader" value="true"/>
+        <!--  favorPathExtension参数表示是否开启后缀    如/xx/user?format=json -->
+         <property name="favorParameter" value="false"/>
+      <!--    开启url后缀扩展名的支持 默认是true -->
+         <property name="favorPathExtension" value="true"/>
+        <!--  默认的mime类型 -->
+         <property name="defaultContentType" value="text/html"/>
+       <property name="mediaTypes">
+			<map>
+				<entry key="atom" value="application/atom+xml" />
+				<entry key="html" value="text/html" />
+				<entry key="json" value="application/json" />
+				<entry key="xml" value="application/xml" />
+			</map>
+		</property>
+    </bean> 
+    
+    <!-- kaptcha 图形验证码 -->
+   <bean id="kaptchaProducer" class="com.google.code.kaptcha.impl.DefaultKaptcha">  
+   <property name="config">  
+      <bean class="com.google.code.kaptcha.util.Config">  
+         <constructor-arg>  
+           <props>  
+             <prop key="kaptcha.border">yes</prop>  
+             <prop key="kaptcha.border.color">red</prop>  
+             <prop key="kaptcha.border.thickness">5</prop>  
+             <prop key="kaptcha.image.width">150</prop>  
+             <prop key="kaptcha.image.height">50</prop>  
+             <prop key="kaptcha.noise.color">0,0,205</prop><!-- 0,0,205  black-->  
+             <prop key="kaptcha.background.clear.from">178,223,238</prop> <!--   255,250,205-->  
+             <prop key="kaptcha.background.clear.to">240,255,240</prop>  
+             <prop key="kaptcha.textproducer.font.names">微软雅黑</prop>  
+             <prop key="kaptcha.textproducer.font.size">30</prop>  
+             <prop key="kaptcha.textproducer.font.color">72,118,255</prop> <!-- 255,110,180 -->  
+             <prop key="kaptcha.textproducer.char.space">3</prop>  
+             <prop key="kaptcha.textproducer.char.string">ABCDEFGHJKMNQRSTUVWXYZ123456789</prop>  
+             <prop key="kaptcha.textproducer.char.length">5</prop>  
+           </props>  
+         </constructor-arg>  
+      </bean>  
+   </property>  
+ </bean>   
+
+</beans>

@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>  
+<beans xmlns="http://www.springframework.org/schema/beans"  
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:p="http://www.springframework.org/schema/p"  
+    xmlns:context="http://www.springframework.org/schema/context"  
+    xmlns:mvc="http://www.springframework.org/schema/mvc"  
+    xmlns:aop="http://www.springframework.org/schema/aop"
+    xmlns:tx="http://www.springframework.org/schema/tx"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans    
+                        http://www.springframework.org/schema/beans/spring-beans-3.1.xsd    
+                        http://www.springframework.org/schema/context    
+                        http://www.springframework.org/schema/context/spring-context-3.1.xsd    
+                        http://www.springframework.org/schema/mvc    
+                        http://www.springframework.org/schema/mvc/spring-mvc-4.0.xsd
+                        http://www.springframework.org/schema/aop    
+                        http://www.springframework.org/schema/aop/spring-aop-4.0.xsd
+                        http://www.springframework.org/schema/tx  
+                        http://www.springframework.org/schema/tx/spring-tx-4.0.xsd "> 
+
+<context:component-scan base-package="com.xzpx_zc.service.impl"></context:component-scan>
+                        
+<bean id="propertyConfigurer" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<property name="locations">
+			<value>classpath:db.properties</value>
+		</property>
+	</bean>
+	
+	<!-- dataSource配置 -->	
+	<bean id="jdbcDataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">  
+	    <property name="driverClassName">  
+	        <value>${jdbc.driver}</value>  
+	    </property>
+	    <property name="url">
+	        <value>${jdbc.url}</value>  
+	    </property>  
+	    <property name="username">
+	        <value>${jdbc.username}</value>  
+	    </property>
+	    <property name="password">
+	        <value>${jdbc.password}</value>
+	    </property>
+	</bean>
+
+    
+	<!--获取sqlSessionFactory，为了下面在应用的时候能拿到sqlSession对象（一个SqlSession就是一级缓存的作用范围）  -->
+ 	<bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+	    <property name="dataSource" ref="jdbcDataSource" />
+	    <property name="configLocation" value="classpath:mybatis.xml" />
+	    <!-- 添加自定义插件（记录日志） -->
+	     <property name="plugins">
+            <array>
+                <bean class="com.xzpx_zc.plugins.mybatisPlugin1"></bean>
+                <bean class="com.github.pagehelper.PageHelper">
+       				 <property name="properties">
+        				  <value>dialect=mysql</value>
+     				 </property>
+      			</bean>
+            </array>
+        </property>
+	</bean>  
+	
+<!-- 	<bean id="tbUserMapper" class="org.mybatis.spring.mapper.MapperFactoryBean">
+		<property name="mapperInterface" value="mapper.TbUserMapper" />
+		<property name="sqlSessionFactory" ref="sqlSessionFactory" />
+	</bean> -->
+	
+	<!-- 扫描XXXMapper.xml文件，并创建成FactoryBean 
+		必须mapper接口和mapper.xml在同一个包内
+	-->
+	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+ 		<property name="basePackage" value="com.xzpx_zc.mapper" />
+ 		<property name="sqlSessionFactoryBeanName" value=""></property>  
+	</bean>                     
+	<!-- 使用tx标签的声明式事务的配置 -->
+	<!-- 
+		spring的事务分为两种， 编程式事务和声明式事务
+		编程式事务暂时不做描述
+		声明事务一般分为三个部分组成，一般是Datasource， transactionManager， 和代理机制。 无论哪种声明式事务的配置变的都只是代理机制
+	 -->
+	 <!--jdbc的事务管理器  spring提供PlatFormTransManager接口，各大orm框架需要提供他们事务管理器的实现类-->
+	<bean id="transactionManager"
+		class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<property name="dataSource" ref="jdbcDataSource" />
+	</bean>
+	<!-- 通知 -->
+	<tx:advice id="txAdvice" transaction-manager="transactionManager">
+		<tx:attributes>
+			<tx:method name="update*" propagation="REQUIRED"/>
+			<tx:method name="insert*" propagation="REQUIRED"/>
+			<tx:method name="delete*" propagation="REQUIRED"/>
+			<tx:method name="save*" propagation="REQUIRED"/>
+			<tx:method name="select*" read-only="true"/>
+			<tx:method name="get*" read-only="true"/>
+			<tx:method name="*" rollback-for="Exception"/>
+		</tx:attributes>		
+	</tx:advice>
+	<!-- aop配置 -->
+	<aop:config>
+		<aop:advisor advice-ref="txAdvice" pointcut="execution(* com.xzpx_zc.service.impl.*.*(..))"/>
+	</aop:config>
+</beans>
