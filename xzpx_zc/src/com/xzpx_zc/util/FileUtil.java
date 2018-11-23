@@ -134,6 +134,6 @@ public class FileUtil {
 		}
 	}
 	public static void main(String[] args) throws Exception {
-		printFileList(new File("F:\\JAVA\\jquery测试"), 0);
+		printFileList(new File("E:\\eclipse_git\\xzpx_zc\\WebRoot\\static"), 0);
 	}
 }
