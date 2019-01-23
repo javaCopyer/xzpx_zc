@@ -1,12 +1,12 @@
 <!DOCTYPE web-app PUBLIC
  "-//Sun Microsystems, Inc.//DTD Web Application 2.3//EN"
- "http://java.sun.com/dtd/web-app_2_3.dtd" >
+ "http://java.sun.com/dtd/web-app_3_0.dtd" >
  <web-app>
- 
 	<filter>
 	    <filter-name>UrlRewriteFilter</filter-name>
 	    <filter-class>org.tuckey.web.filters.urlrewrite.UrlRewriteFilter</filter-class>
 	</filter>
+	
 	<filter-mapping>
 	    <filter-name>UrlRewriteFilter</filter-name>
 	    <url-pattern>*.htm</url-pattern>
