@@ -5,16 +5,28 @@ import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
+
+import com.xzpx_zc.service.ZcUserService;
 
 @Controller
 public class DemoController {
+	@Resource
+	private ZcUserService zcUserService;
+	@RequestMapping(value="/cache", method={RequestMethod.POST, RequestMethod.GET})
+	@ResponseBody
+	public String cache(HttpServletResponse response, String name) throws IOException {
+		String res = zcUserService.cache();
+		return res;
+	}
 
 	@RequestMapping(value="/getUsers", method={RequestMethod.POST, RequestMethod.GET})
 	public ModelAndView getUsers(HttpServletResponse response, String name) throws IOException {
